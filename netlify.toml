@@ -1,0 +1,7 @@
+# Mnemos — Netlify config
+# Static site (no build). The only server-side piece is the featured-winners
+# function, which refreshes the landing page's "Aktuelle Winner" every ~2 days.
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

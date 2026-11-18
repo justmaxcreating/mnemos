@@ -1,0 +1,5 @@
+# Allow the landing page to fetch the featured winners cross-origin
+# (app runs on elevion.studio, featured.json is served from netlify.app).
+/featured.json
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300

@@ -1,0 +1,6 @@
+.netlify
+.DS_Store
+._*
+node_modules
+featured.json
+.env

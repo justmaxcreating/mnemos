@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mnemos — Meta Ad Library Explorer by Elevion</title>
+    <meta name="description" content="Die Meta Ad Library, aber benutzerfreundlich. Ads durchsuchen, Brands speichern, Creatives analysieren.">
+    <meta name="theme-color" content="#F2F0EA">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mnemos">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=43">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=43">
+    <link rel="icon" type="image/png" href="favicon.png?v=43">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=43">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css?v=42">
+</head>
+<body>
+
+    <div class="noise"></div>
+
+    <!-- ===================== NAV ===================== -->
+    <nav class="nav">
+        <a href="#" class="nav-logo" id="logo-home">
+            <span>Mnemos<span class="dot">.</span></span>
+            <span class="nav-byline">by Elevion</span>
+        </a>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-view="discover"><i class="fa-solid fa-magnifying-glass"></i><span>Entdecken</span></button>
+            <button class="nav-tab" data-view="brands"><i class="fa-regular fa-star"></i><span>Brands</span><span class="tab-count" id="count-brands">0</span></button>
+            <button class="nav-tab" data-view="radar" title="Impressions-Ranking & Verlauf deiner Brands"><i class="fa-solid fa-chart-line"></i><span>Radar</span></button>
+            <button class="nav-tab" data-view="voc" title="Voice of Customer — Kundensprache aus Ads & Kommentaren"><i class="fa-solid fa-comment-dots"></i><span>Stimmen</span></button>
+            <button class="nav-tab" data-view="saved"><i class="fa-regular fa-bookmark"></i><span>Gespeichert</span><span class="tab-count" id="count-saved">0</span></button>
+        </div>
+        <div class="nav-right">
+            <div class="nav-right-items" id="nav-right-items">
+                <select id="country-select" class="country-select" title="Ziel-Land der Ads"></select>
+                <button class="icon-btn" id="btn-install" title="Mnemos installieren" hidden><i class="fa-solid fa-arrow-down-to-line"></i><span class="nav-item-label">App installieren</span></button>
+                <button class="icon-btn" id="btn-help" title="Anleitung & Einrichtung"><i class="fa-solid fa-question"></i><span class="nav-item-label">Anleitung</span></button>
+                <button class="icon-btn" id="btn-settings" title="Einstellungen"><i class="fa-solid fa-gear"></i><span class="nav-item-label">Einstellungen</span></button>
+                <button class="account-btn" id="btn-account" title="Konto"><i class="fa-regular fa-user"></i><span id="account-label">Anmelden</span></button>
+            </div>
+            <button class="icon-btn nav-menu-btn" id="nav-menu-btn" title="Menü" aria-label="Menü"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        </div>
+    </nav>
+
+    <!-- ===================== DEMO BANNER ===================== -->
+    <div class="demo-banner" id="demo-banner" hidden>
+        <i class="fa-solid fa-circle-info"></i>
+        <span><strong>Demo-Modus.</strong> Es werden Beispiel-Ads angezeigt. Hinterlege deinen Meta Access Token, um echte Ads zu laden.</span>
+        <button id="demo-banner-btn">Einrichtung starten →</button>
+    </div>
+
+    <!-- ===================== VIEW: DISCOVER ===================== -->
+    <main class="view" id="view-discover">
+
+        <header class="hero">
+            <div class="badge reveal">Meta Ad Library Explorer</div>
+            <h1 class="hero-h1 reveal delay-100">Durchsuche die <span class="serif-accent">Ad&nbsp;Library.</span></h1>
+            <p class="hero-sub reveal delay-200">Alle aktiven Meta-Ads in der EU. Ohne das umständliche Original-Interface.</p>
+            <button class="explainer-btn reveal delay-300" id="btn-explainer">
+                <span class="explainer-play"><i class="fa-solid fa-play"></i></span>
+                In 55 Sekunden erklärt
+            </button>
+        </header>
+
+        <!-- Search -->
+        <section class="search-wrap reveal delay-200">
+            <form class="search-bar" id="search-form">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Keyword, Produkt oder Brand suchen …" autocomplete="off">
+                <button type="submit" class="btn btn-primary" id="search-btn">Suchen</button>
+            </form>
+
+            <!-- Saved brand quick chips -->
+            <div class="brand-chips" id="brand-chips"></div>
+
+            <!-- Filter-Toggle: nur mobil sichtbar, klappt die Filterleiste ein/aus -->
+            <button type="button" class="filter-toggle-btn" id="filter-toggle-btn" aria-expanded="false" aria-controls="filters">
+                <i class="fa-solid fa-sliders"></i> Filter <i class="fa-solid fa-chevron-down filter-toggle-chevron"></i>
+            </button>
+
+            <!-- Filters -->
+            <div class="filters" id="filters">
+                <div class="filter">
+                    <label>Status</label>
+                    <select id="f-status">
+                        <option value="ACTIVE">Aktiv</option>
+                        <option value="ALL">Alle</option>
+                        <option value="INACTIVE">Inaktiv</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label>Medientyp</label>
+                    <select id="f-media">
+                        <option value="ALL">Alle</option>
+                        <option value="STATIC">Bild (Statics)</option>
+                        <option value="VIDEO">Video</option>
+                        <option value="NONE">Nur Text</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label>Plattform</label>
+                    <select id="f-platform">
+                        <option value="">Alle</option>
+                        <option value="FACEBOOK">Facebook</option>
+                        <option value="INSTAGRAM">Instagram</option>
+                        <option value="MESSENGER">Messenger</option>
+                        <option value="AUDIENCE_NETWORK">Audience Network</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label>Sprache</label>
+                    <select id="f-lang">
+                        <option value="">Alle</option>
+                        <option value="de">Deutsch</option>
+                        <option value="en">Englisch</option>
+                        <option value="fr">Französisch</option>
+                        <option value="es">Spanisch</option>
+                        <option value="it">Italienisch</option>
+                        <option value="nl">Niederländisch</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label>Suchmodus</label>
+                    <select id="f-searchtype">
+                        <option value="KEYWORD_UNORDERED">Enthält Wörter</option>
+                        <option value="KEYWORD_EXACT_PHRASE">Exakte Phrase</option>
+                    </select>
+                </div>
+                <div class="filter">
+                    <label>Aktiv von</label>
+                    <input type="date" id="f-datemin">
+                </div>
+                <div class="filter">
+                    <label>Aktiv bis</label>
+                    <input type="date" id="f-datemax">
+                </div>
+                <div class="filter">
+                    <label>Sortierung</label>
+                    <select id="f-sort">
+                        <option value="">Neueste zuerst</option>
+                        <option value="reach">Reichweite (höchste)</option>
+                        <option value="runtime">Laufzeit (längste)</option>
+                        <option value="score">Performance Score (höchste)</option>
+                    </select>
+                </div>
+                <label class="winner-toggle" for="f-winner" title="Nur Ads, die deine Winner-Kriterien erfüllen (⚙️ anpassbar)">
+                    <input type="checkbox" id="f-winner">
+                    <i class="fa-solid fa-trophy"></i> Nur Winner
+                </label>
+                <button class="filter-reset" id="f-reset" title="Filter zurücksetzen"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+            </div>
+
+            <!-- Active brand filter pill -->
+            <div class="active-brand" id="active-brand" hidden>
+                <span>Zeige nur Ads von <strong id="active-brand-name"></strong></span>
+                <button id="active-brand-clear"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </section>
+
+        <!-- Results -->
+        <section class="results-wrap">
+            <!-- Kuratierte „Aktuelle Winner" (Startseite, ohne Suche) -->
+            <div class="featured-head" id="featured-head" hidden>
+                <div class="featured-title"><span class="featured-flame"><i class="fa-solid fa-fire"></i></span> Aktuelle <span class="serif-accent">Winner.</span></div>
+                <p class="featured-sub">Top-Ads von Brands, die gerade abliefern — automatisch geladen. Oder such oben nach jeder anderen Brand.</p>
+            </div>
+            <!-- Format-Filter (Parker-Style, automatisch erkannt) -->
+            <div class="format-chips" id="format-chips" hidden></div>
+            <div class="results-meta" id="results-meta" hidden>
+                <span id="results-count"></span>
+                <span id="companion-badge"></span>
+            </div>
+            <div class="results-grid" id="results-grid"></div>
+            <div class="state-box" id="state-box"></div>
+            <div class="load-more-wrap">
+                <button class="btn btn-outline" id="btn-loadmore" hidden>Mehr laden <i class="fa-solid fa-arrow-down"></i></button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================== VIEW: BRANDS ===================== -->
+    <main class="view" id="view-brands" hidden>
+        <header class="hero">
+            <div class="badge">Deine Watchlist</div>
+            <h1 class="hero-h1">Gespeicherte <span class="serif-accent">Brands.</span></h1>
+            <p class="hero-sub">Ein Klick, und du siehst alle aktuellen Ads einer Brand.</p>
+        </header>
+        <section class="brands-grid" id="brands-grid"></section>
+        <div class="state-box" id="brands-empty"></div>
+    </main>
+
+    <!-- ===================== VIEW: SAVED ADS ===================== -->
+    <main class="view" id="view-saved" hidden>
+        <header class="hero">
+            <div class="badge">Dein Swipe File</div>
+            <h1 class="hero-h1">Gespeicherte <span class="serif-accent">Ads.</span></h1>
+            <p class="hero-sub">Deine Sammlung — Inspiration für die nächsten Creatives. Ordne sie in Ordnern & Unterordnern, per Drag &amp; Drop oder Rechtsklick.</p>
+        </header>
+        <div class="saved-layout">
+            <aside class="saved-sidebar collapsed" id="saved-sidebar">
+                <div class="saved-sidebar-head">
+                    <button type="button" class="sidebar-toggle-btn" id="saved-sidebar-toggle" aria-expanded="false" aria-controls="saved-sidebar-body">
+                        <i class="fa-solid fa-folder-tree"></i> Ordner
+                        <i class="fa-solid fa-chevron-down sidebar-chevron"></i>
+                    </button>
+                    <button class="icon-btn icon-btn-sm" id="saved-new-root-folder" title="Neuer Ordner"><i class="fa-solid fa-folder-plus"></i></button>
+                </div>
+                <div class="saved-sidebar-body" id="saved-sidebar-body">
+                    <div class="folder-tree" id="saved-folder-tree"></div>
+                    <p class="folder-tree-hint">Rechtsklick auf einen Ordner: umbenennen, Unterordner anlegen, löschen. Ads per Drag &amp; Drop hierher ziehen.</p>
+                </div>
+            </aside>
+            <section class="saved-content">
+                <div class="saved-breadcrumb" id="saved-breadcrumb" hidden></div>
+                <div class="folder-tiles" id="saved-subfolder-tiles" hidden></div>
+                <section class="results-grid" id="saved-grid"></section>
+                <div class="state-box" id="saved-empty"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ===================== VIEW: RADAR (Rank tracking) ===================== -->
+    <main class="view" id="view-radar" hidden>
+        <header class="hero">
+            <div class="badge">Impressions-Radar</div>
+            <h1 class="hero-h1">Wer <span class="serif-accent">gewinnt.</span></h1>
+            <p class="hero-sub">Mnemos misst täglich das Impressions-Ranking deiner Brands. Wer lange oben steht, verdient Geld — das sind die echten Winner.</p>
+        </header>
+
+        <section class="radar-wrap">
+            <!-- Brand selector -->
+            <div class="brand-chips" id="radar-brand-chips"></div>
+
+            <!-- Per-brand snapshot: ranked ads + rank history -->
+            <div class="radar-panel" id="radar-panel" hidden>
+                <div class="radar-panel-head">
+                    <div class="radar-brand-head">
+                        <div class="brand-avatar" id="radar-brand-avatar"></div>
+                        <div>
+                            <h2 id="radar-brand-name">—</h2>
+                            <p class="radar-panel-sub" id="radar-brand-meta"></p>
+                        </div>
+                    </div>
+                    <div class="radar-head-actions">
+                        <div class="radar-toggle" id="radar-toggle">
+                            <button data-radar-mode="ranking" class="active"><i class="fa-solid fa-list-ol"></i> Ranking</button>
+                            <button data-radar-mode="creatives"><i class="fa-solid fa-images"></i> Creatives</button>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="radar-refresh"><i class="fa-solid fa-rotate"></i> <span>Aktualisieren</span></button>
+                    </div>
+                </div>
+                <div class="format-chips radar-format-chips" id="radar-format-chips" hidden></div>
+                <div class="radar-table" id="radar-table"></div>
+            </div>
+
+            <div class="state-box" id="radar-empty"></div>
+        </section>
+    </main>
+
+    <!-- ===================== VIEW: VOICE OF CUSTOMER ===================== -->
+    <main class="view" id="view-voc" hidden>
+        <header class="hero">
+            <div class="badge">Voice of Customer</div>
+            <h1 class="hero-h1">Deine Kunden sind deine <span class="serif-accent">Copywriter.</span></h1>
+            <p class="hero-sub">Die stärksten Formulierungen stehen schon in Ads & Kommentaren. Mnemos zieht die emotional aufgeladenen Kundenstimmen raus — bereit fürs nächste Creative.</p>
+        </header>
+
+        <section class="voc-wrap">
+            <div class="voc-toolbar">
+                <div class="brand-chips" id="voc-brand-chips"></div>
+                <div class="voc-actions">
+                    <button class="btn btn-outline btn-sm" id="voc-load-comments" hidden><i class="fa-solid fa-comments"></i> Echte FB-Kommentare laden</button>
+                    <button class="btn btn-outline btn-sm" id="voc-copy-all" hidden><i class="fa-regular fa-copy"></i> Alle kopieren</button>
+                </div>
+            </div>
+            <p class="voc-hint" id="voc-hint"></p>
+            <div class="voc-grid" id="voc-grid"></div>
+            <div class="state-box" id="voc-empty"></div>
+        </section>
+    </main>
+
+    <!-- ===================== ACCOUNT / AUTH MODAL ===================== -->
+    <div class="modal-overlay" id="auth-modal" hidden>
+        <div class="modal modal-sm">
+            <div class="modal-head">
+                <h2 id="auth-title">Anmelden<span class="dot">.</span></h2>
+                <button class="icon-btn" id="auth-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Logged-out: sign in / sign up -->
+            <div id="auth-forms">
+                <p class="auth-intro">Erstelle ein Konto, damit deine gespeicherten Ads, Brands & Ordner
+                <strong>wirklich gesichert</strong> sind — geräteübergreifend, nicht nur in diesem Browser.</p>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-auth-tab="signin">Einloggen</button>
+                    <button class="auth-tab" data-auth-tab="signup">Konto erstellen</button>
+                </div>
+
+                <label class="modal-label" for="auth-name" id="auth-name-label" hidden>Name <span class="label-note">optional</span></label>
+                <input type="text" id="auth-name" class="auth-input" placeholder="Dein Name" autocomplete="name" hidden>
+
+                <label class="modal-label" for="auth-email">E-Mail</label>
+                <input type="email" id="auth-email" class="auth-input" placeholder="du@brand.com" autocomplete="email">
+
+                <label class="modal-label" for="auth-pass">Passwort</label>
+                <div class="token-row">
+                    <input type="password" id="auth-pass" class="auth-input" placeholder="Mind. 6 Zeichen" autocomplete="current-password">
+                    <button class="icon-btn" id="auth-pass-toggle" title="Anzeigen/Verbergen"><i class="fa-regular fa-eye"></i></button>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="auth-submit">Einloggen</button>
+                    <button class="btn btn-ghost btn-sm" id="auth-magic" title="Login-Link per E-Mail">Stattdessen Magic-Link</button>
+                </div>
+                <p class="auth-status" id="auth-status"></p>
+                <button class="inline-link" id="auth-forgot">Passwort vergessen?</button>
+            </div>
+
+            <!-- Logged-in: account panel -->
+            <div id="auth-account" hidden>
+                <div class="account-card">
+                    <div class="account-avatar" id="account-avatar">M</div>
+                    <div>
+                        <strong id="account-name">—</strong>
+                        <span id="account-email" class="account-email"></span>
+                    </div>
+                </div>
+                <p class="modal-hint" id="account-sync-note"><i class="fa-solid fa-cloud"></i> Deine Brands, Ads & Ordner werden automatisch in der Cloud gesichert.</p>
+
+                <label class="track-toggle" id="account-cron-row" hidden>
+                    <input type="checkbox" id="account-cron">
+                    <span>Meta-Token für tägliches Auto-Tracking speichern <span class="label-note">(serverseitig, verschlüsselt)</span></span>
+                </label>
+
+                <div class="modal-actions">
+                    <button class="btn btn-outline" id="auth-signout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Abmelden</button>
+                </div>
+            </div>
+
+            <p class="modal-hint auth-disabled-note" id="auth-disabled" hidden>
+                <i class="fa-solid fa-triangle-exclamation"></i> Konten sind noch nicht konfiguriert.
+                Trage in <code>supabase-config.js</code> deine Supabase-URL und den Anon-Key ein (siehe <code>SUPABASE_SETUP.md</code>).
+            </p>
+        </div>
+    </div>
+
+    <!-- ===================== SETTINGS MODAL ===================== -->
+    <div class="modal-overlay" id="settings-modal" hidden>
+        <div class="modal">
+            <div class="modal-head">
+                <h2>Einstellungen<span class="dot">.</span></h2>
+                <button class="icon-btn" id="settings-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Meta-Token-Feld: nur für Power-User; Tester nutzen den geteilten Zugang.
+                 Über „Erweitert" einblendbar. Elemente bleiben im DOM (JS-Handler). -->
+            <details class="howto advanced-token">
+                <summary>Erweitert: eigenes Meta Access Token <i class="fa-solid fa-chevron-down"></i></summary>
+                <p class="modal-hint">Standardmäßig läuft die EU-Suche über den geteilten Zugang — du brauchst hier nichts. Nur wenn du dein eigenes Meta-Kontingent nutzen willst:</p>
+                <label class="modal-label" for="token-input">Meta Access Token</label>
+                <div class="token-row">
+                    <input type="password" id="token-input" placeholder="EAAB…" autocomplete="off">
+                    <button class="icon-btn" id="token-toggle" title="Anzeigen/Verbergen"><i class="fa-regular fa-eye"></i></button>
+                </div>
+                <p class="modal-hint">Wird ausschließlich lokal in deinem Browser gespeichert und nur an <code>graph.facebook.com</code> gesendet.</p>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="token-save">Speichern & testen</button>
+                    <button class="btn btn-outline" id="token-clear">Token löschen</button>
+                </div>
+                <p class="token-status" id="token-status"></p>
+            </details>
+
+            <div class="settings-section">
+                <label class="modal-label">Winner-Kriterien</label>
+                <div class="winner-settings">
+                    <span>Laufzeit ≥</span>
+                    <input type="number" id="winner-days" min="1" step="1"> <span>Tage</span>
+                    <span class="winner-or">oder</span>
+                    <span>Reichweite ≥</span>
+                    <input type="number" id="winner-reach" min="0" step="1000">
+                </div>
+                <p class="modal-hint">Ads, die eines der Kriterien erfüllen, bekommen das <i class="fa-solid fa-trophy" style="color:#a8842c"></i> Winner-Badge.
+                Laufzeit ist das ehrlichste öffentliche Signal: Niemand lässt eine Ad monatelang laufen, die kein Geld verdient.</p>
+            </div>
+
+            <div class="settings-section">
+                <label class="modal-label" for="radar-freq">Radar-Tracking-Frequenz</label>
+                <select id="radar-freq" class="radar-freq-select">
+                    <option value="0">Nur manuell</option>
+                    <option value="1">Täglich</option>
+                    <option value="3">Alle 3 Tage</option>
+                    <option value="7">Wöchentlich</option>
+                </select>
+                <p class="modal-hint">Wie oft Mnemos deine getrackten Brands beim Öffnen automatisch snapshottet.
+                Läuft <strong>kostenlos</strong> über alle EU-Länder + UK (Meta-API) — unabhängig vom gewählten Land.
+                <br>Reine US-Brands (die Meta offiziell nicht zeigt) findest du per <strong>„Aktualisieren"</strong> im Radar über ScrapeCreators (~1 Credit).</p>
+            </div>
+
+            <div class="settings-section">
+                <label class="modal-label" for="sc-key-input">ScrapeCreators API-Key <span class="label-note">für USA, UK & weltweite Suche</span></label>
+                <div class="token-row">
+                    <input type="password" id="sc-key-input" placeholder="API-Key von scrapecreators.com" autocomplete="off">
+                    <button class="icon-btn" id="sc-key-toggle" title="Anzeigen/Verbergen"><i class="fa-regular fa-eye"></i></button>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="sc-key-save">Key speichern & testen</button>
+                    <button class="btn btn-outline" id="sc-key-clear">Key löschen</button>
+                </div>
+                <p class="token-status" id="sc-key-status"></p>
+                <p class="modal-hint">Metas API liefert außerhalb der EU nur politische Ads. Für globale Suchen nutzt Mnemos
+                <a href="https://scrapecreators.com" target="_blank" rel="noopener">ScrapeCreators</a> — 1.000 Suchen gratis
+                (ohne Kreditkarte), danach ca. 1 Credit pro Suche. Der Key bleibt lokal in deinem Browser.</p>
+                <details class="howto">
+                    <summary>So bekommst du deinen Key <i class="fa-solid fa-chevron-down"></i></summary>
+                    <ol>
+                        <li><a href="https://scrapecreators.com" target="_blank" rel="noopener">scrapecreators.com</a> öffnen → registrieren (E-Mail + Passwort, keine Bestätigung nötig — dauert 30 Sekunden).</li>
+                        <li>Im Dashboard wird dir dein API-Key direkt angezeigt → kopieren.</li>
+                        <li>Oben einfügen → „Key speichern & testen". Du startest mit 1.000 Gratis-Credits; 1 Suche bzw. 1× „Mehr laden" = 1 Credit. Aufladen jederzeit auf scrapecreators.com.</li>
+                    </ol>
+                </details>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================== EXPLAINER (55s Motion-Walkthrough) ===================== -->
+    <div class="explainer" id="explainer" hidden>
+        <div class="x-noise"></div>
+
+        <!-- Progress -->
+        <div class="x-progress" id="x-progress"></div>
+
+        <!-- Controls -->
+        <div class="x-controls">
+            <button class="x-ctrl" id="x-pause" title="Pause/Weiter"><i class="fa-solid fa-pause"></i></button>
+            <button class="x-ctrl" id="x-close" title="Schließen"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Click-Zonen (Stories-Style) -->
+        <div class="x-zone x-zone-prev" id="x-prev"></div>
+        <div class="x-zone x-zone-next" id="x-next"></div>
+
+        <!-- Szene 1: Intro -->
+        <section class="x-scene" data-scene="0">
+            <div class="x-center">
+                <div class="x-badge x-in" style="--d:.1s">Meta Ad Library Explorer</div>
+                <h2 class="x-title x-in" style="--d:.35s">Mnemos<span class="dot">.</span></h2>
+                <p class="x-sub x-in" style="--d:.7s">Die Ad Library. <span class="x-serif">Nur besser.</span></p>
+            </div>
+        </section>
+
+        <!-- Szene 2: Suchen -->
+        <section class="x-scene" data-scene="1">
+            <div class="x-center">
+                <p class="x-kicker x-in" style="--d:.1s">01 — Suchen</p>
+                <div class="x-searchbar x-in" style="--d:.3s">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span class="x-type" id="x-typewriter"></span><span class="x-caret"></span>
+                </div>
+                <div class="x-pills">
+                    <span class="x-pill x-in" style="--d:1.6s">🇩🇪 Deutschland</span>
+                    <span class="x-pill x-in" style="--d:1.9s">Status: Aktiv</span>
+                    <span class="x-pill x-in" style="--d:2.2s">Bild (Statics)</span>
+                    <span class="x-pill x-in" style="--d:2.5s">Letzte 30 Tage</span>
+                </div>
+                <p class="x-sub x-in" style="--d:3.1s">Jedes Keyword. Jede Brand. <span class="x-serif">Jeder Markt.</span></p>
+            </div>
+        </section>
+
+        <!-- Szene 3: Analysieren -->
+        <section class="x-scene" data-scene="2">
+            <div class="x-center">
+                <p class="x-kicker x-in" style="--d:.1s">02 — Analysieren</p>
+                <div class="x-cards">
+                    <div class="x-card x-in" style="--d:.4s">
+                        <div class="x-card-head"><span class="x-avatar">L</span> LUMA Skincare</div>
+                        <div class="x-card-creative" style="background:linear-gradient(160deg,#3d2c29,#7a5c52)"><span>Glow ohne <em>Filter.</em></span></div>
+                        <div class="x-card-badges"><span class="x-b live">● Live</span><span class="x-b">247 Tage</span></div>
+                    </div>
+                    <div class="x-card x-in" style="--d:.65s">
+                        <div class="x-card-head"><span class="x-avatar">N</span> NOVA Sleep</div>
+                        <div class="x-card-creative" style="background:linear-gradient(160deg,#1a1f3c,#41518f)"><span>Schlaf ist die neue <em>Superpower.</em></span></div>
+                        <div class="x-card-badges"><span class="x-b live">● Live</span><span class="x-b">1,2 Mio Reichweite</span></div>
+                    </div>
+                    <div class="x-card x-in" style="--d:.9s">
+                        <div class="x-card-head"><span class="x-avatar">V</span> VELO Berlin</div>
+                        <div class="x-card-creative" style="background:linear-gradient(160deg,#1c1c1c,#800020)"><span>Dein Auto <em>hasst</em> diesen Trick.</span></div>
+                        <div class="x-card-badges"><span class="x-b live">● Live</span><span class="x-b">89 Tage</span></div>
+                    </div>
+                </div>
+                <p class="x-sub x-in" style="--d:1.6s">Echte Creatives. Laufzeit. Reichweite. <span class="x-serif">Auf einen Blick.</span></p>
+            </div>
+        </section>
+
+        <!-- Szene 4: Winner -->
+        <section class="x-scene" data-scene="3">
+            <div class="x-center">
+                <p class="x-kicker x-in" style="--d:.1s">03 — Winner erkennen</p>
+                <div class="x-winner-badge x-in" style="--d:.5s"><i class="fa-solid fa-trophy"></i> Winner</div>
+                <p class="x-big x-in" style="--d:1.1s">Niemand lässt eine Ad<br><span class="x-serif">247 Tage</span> laufen,<br>die kein Geld verdient.</p>
+                <p class="x-sub x-in" style="--d:2.2s">Sortiere nach Laufzeit & Reichweite — Winner tragen das Badge.</p>
+            </div>
+        </section>
+
+        <!-- Szene 5: Sammeln -->
+        <section class="x-scene" data-scene="4">
+            <div class="x-center">
+                <p class="x-kicker x-in" style="--d:.1s">04 — Sammeln</p>
+                <div class="x-collect">
+                    <div class="x-collect-item x-in" style="--d:.4s">
+                        <span class="x-star"><i class="fa-solid fa-star"></i></span>
+                        <div><strong>Brands beobachten</strong><br>Ein Klick — alle Ads einer Brand, jederzeit.</div>
+                    </div>
+                    <div class="x-collect-item x-in" style="--d:1.2s">
+                        <span class="x-star x-bm"><i class="fa-solid fa-bookmark"></i></span>
+                        <div><strong>Swipe File mit Ordnern</strong><br>Starke Ads speichern, sortieren, wiederfinden.</div>
+                    </div>
+                </div>
+                <div class="x-chip-demo x-in" style="--d:2.2s"><i class="fa-solid fa-star"></i> LUMA Skincare <span class="x-chip-plus">gespeichert</span></div>
+            </div>
+        </section>
+
+        <!-- Szene 6: Global -->
+        <section class="x-scene" data-scene="5">
+            <div class="x-center">
+                <p class="x-kicker x-in" style="--d:.1s">05 — Global</p>
+                <div class="x-flags">
+                    <span class="x-flag x-in" style="--d:.4s">🇩🇪</span>
+                    <span class="x-flag x-in" style="--d:.55s">🇫🇷</span>
+                    <span class="x-flag x-in" style="--d:.7s">🇺🇸</span>
+                    <span class="x-flag x-in" style="--d:.85s">🇬🇧</span>
+                    <span class="x-flag x-in" style="--d:1s">🌍</span>
+                </div>
+                <p class="x-sub x-in" style="--d:1.5s">EU komplett kostenlos. <span class="x-serif">USA & weltweit</span> optional dazu.</p>
+            </div>
+        </section>
+
+        <!-- Szene 7: Outro -->
+        <section class="x-scene" data-scene="6">
+            <div class="x-center">
+                <h2 class="x-title x-in" style="--d:.2s">Mnemos<span class="dot">.</span></h2>
+                <p class="x-sub x-in" style="--d:.7s">Einrichten dauert 3 Minuten.</p>
+                <button class="btn btn-primary x-in" id="x-cta" style="--d:1.2s">Jetzt starten <i class="fa-solid fa-arrow-right"></i></button>
+                <p class="x-byline x-in" style="--d:1.8s">by <a href="https://elevion.studio" target="_blank" rel="noopener">Elevion</a></p>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===================== ONBOARDING MODAL ===================== -->
+    <div class="modal-overlay" id="onboard-modal" hidden>
+        <div class="modal modal-onboard">
+            <div class="modal-head">
+                <h2>Willkommen bei Mnemos<span class="dot">.</span></h2>
+                <button class="icon-btn" id="onboard-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="onboard-intro">Die Meta Ad Library — nur schneller, filterbar und mit Swipe File.
+            Brands beobachten, Winner-Ads erkennen, Creatives sammeln. Einmal einrichten, dann läuft's:</p>
+
+            <div class="onboard-step">
+                <div class="onboard-step-head">
+                    <span class="step-num">✓</span>
+                    <h3>EU-Suche <span class="label-note">— läuft sofort, kein Setup</span></h3>
+                </div>
+                <ol>
+                    <li>Für alle EU-Länder (🇩🇪 🇦🇹 🇫🇷 …) kannst du direkt loslegen — einfach suchen oder oben eine Brand anklicken. Der Meta-Zugang ist schon eingerichtet.</li>
+                </ol>
+            </div>
+
+            <div class="onboard-step">
+                <div class="onboard-step-head">
+                    <span class="step-num">1</span>
+                    <h3>ScrapeCreators-Key <span class="label-note">— nur für USA, UK & weltweit</span></h3>
+                </div>
+                <ol>
+                    <li>Auf <a href="https://scrapecreators.com" target="_blank" rel="noopener">scrapecreators.com</a> registrieren — dauert 30 Sekunden, keine Kreditkarte, keine E-Mail-Bestätigung</li>
+                    <li>API-Key aus dem Dashboard kopieren</li>
+                    <li>In den <button class="inline-link" data-action="open-settings">Einstellungen ⚙️</button> einfügen → „Key speichern & testen". <strong>1.000 Suchen gratis</strong>, danach ~1 Credit pro Suche</li>
+                </ol>
+            </div>
+
+            <div class="onboard-step">
+                <div class="onboard-step-head">
+                    <span class="step-num">2</span>
+                    <h3>Companion-Extension <span class="label-note">— optional, zeigt EU-Creatives direkt in der App</span></h3>
+                </div>
+                <ol>
+                    <li><a href="https://elevion-studio-mnemos.netlify.app/mnemos-companion.zip" download>mnemos-companion.zip herunterladen</a> und entpacken</li>
+                    <li>In Chrome <strong>chrome://extensions</strong> öffnen → oben rechts <strong>„Entwicklermodus"</strong> aktivieren</li>
+                    <li><strong>„Entpackte Erweiterung laden"</strong> → den entpackten Ordner auswählen → Mnemos neu laden</li>
+                </ol>
+</p>
+            </div>
+
+            <p class="onboard-note"><i class="fa-solid fa-circle-info"></i> Hintergrund: Metas offizielle Schnittstelle liefert dank EU-Gesetz (DSA) alle Ads für EU-Länder — dafür ist der Meta-Token da.
+            Für Länder außerhalb der EU gibt Meta nur politische Ads frei, deshalb nutzt Mnemos dort ScrapeCreators (liefert Creatives direkt mit, Extension nicht nötig). Alle Schlüssel bleiben ausschließlich in deinem Browser.</p>
+
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="onboard-settings">Einstellungen öffnen</button>
+                <button class="btn btn-outline" id="onboard-demo">Erstmal Demo ansehen</button>
+            </div>
+
+            <p class="onboard-elevion">Mnemos ist ein Tool von <a href="https://elevion.studio" target="_blank" rel="noopener">Elevion</a> —
+            wir bauen Static Ads für D2C-Brands, die verkaufen statt nur gut auszusehen.
+            Genug recherchiert und du willst Winner-Creatives für deine Brand?
+            <a href="https://elevion.studio/#booking" target="_blank" rel="noopener"><strong>Buch dir einen Call →</strong></a></p>
+        </div>
+    </div>
+
+    <!-- ===================== FOLDER CHOOSER MODAL ===================== -->
+    <div class="modal-overlay" id="folder-modal" hidden>
+        <div class="modal modal-sm">
+            <div class="modal-head">
+                <h2 id="folder-modal-title">Speichern in<span class="dot">.</span></h2>
+                <button class="icon-btn" id="folder-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="folder-list" id="folder-list"></div>
+            <div class="folder-create">
+                <input type="text" id="folder-new-name" placeholder="Neuer Ordner …" maxlength="40">
+                <button class="btn btn-primary" id="folder-create-btn"><i class="fa-solid fa-plus"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== AD-COPY-MODAL ===================== -->
+    <div class="modal-overlay" id="copy-modal" hidden>
+        <div class="modal modal-copy">
+            <div class="modal-head">
+                <h2 id="copy-modal-title">Ad-Copy<span class="dot">.</span></h2>
+                <button class="icon-btn" id="copy-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="copy-brand" id="copy-brand"></div>
+            <div class="copy-body" id="copy-body"></div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="copy-copy-btn"><i class="fa-regular fa-copy"></i> Copy kopieren</button>
+                <a class="btn btn-outline" id="copy-snapshot" href="#" target="_blank" rel="noopener"><i class="fa-regular fa-eye"></i> Creative ansehen</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="footer">
+        <span>Mnemos<span class="dot">.</span></span>
+        <a class="footer-cta" href="https://elevion.studio/#booking" target="_blank" rel="noopener">
+            Du brauchst Ads, die verkaufen? <strong>Call buchen <i class="fa-solid fa-arrow-right"></i></strong>
+        </a>
+        <span class="footer-note">Built by <a href="https://elevion.studio" target="_blank" rel="noopener">Elevion</a> — Daten: Meta Ad Library API</span>
+    </footer>
+
+    <!-- ===================== CREATIVE LIGHTBOX ===================== -->
+    <div class="lightbox" id="lightbox" hidden>
+        <button class="lightbox-close" id="lightbox-close" title="Schließen (Esc)"><i class="fa-solid fa-xmark"></i></button>
+        <div class="lightbox-stage" id="lightbox-media"></div>
+        <div class="lightbox-bar">
+            <div class="lightbox-info" id="lightbox-info"></div>
+            <div class="lightbox-actions">
+                <button class="btn btn-primary" id="lightbox-download"><i class="fa-solid fa-download"></i> <span id="lightbox-download-label">Download</span></button>
+                <a class="btn btn-outline" id="lightbox-fb" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ad Library</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== AD DETAIL DRAWER ===================== -->
+    <div class="drawer-overlay" id="drawer-overlay" hidden></div>
+    <aside class="ad-drawer" id="ad-drawer" hidden aria-hidden="true">
+        <button class="icon-btn drawer-close" id="drawer-close" title="Schließen (Esc)"><i class="fa-solid fa-xmark"></i></button>
+        <div class="drawer-scroll" id="drawer-body"></div>
+    </aside>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Cloud layer: Supabase client → config → sync module → app -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js?v=42"></script>
+    <script src="supabase-sync.js?v=42"></script>
+    <script src="app.js?v=42"></script>
+</body>
+</html>
